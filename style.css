@@ -1,0 +1,108 @@
+:root {
+  --acento: #e8590c;
+  --acento-oscuro: #c2410c;
+  --fondo: #f5f5f4;
+  --tarjeta: #ffffff;
+  --texto: #1c1917;
+  --suave: #78716c;
+  --borde: #e7e5e4;
+  --ok: #15803d;
+  --aviso: #b45309;
+  --peligro: #b91c1c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #1c1917;
+    --tarjeta: #292524;
+    --texto: #fafaf9;
+    --suave: #a8a29e;
+    --borde: #44403c;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.top {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; gap: 8px;
+  padding: calc(10px + env(safe-area-inset-top, 0)) 14px 10px;
+  background: var(--acento); color: #fff;
+}
+.top h1 { margin: 0; font-size: 1.1rem; line-height: 1.2; }
+.migas { font-size: .75rem; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.titulos { min-width: 0; }
+.atras {
+  border: 0; background: rgba(255,255,255,.2); color: #fff;
+  font-size: 1.8rem; line-height: 1; width: 40px; height: 40px; border-radius: 10px; cursor: pointer;
+}
+main { max-width: 640px; margin: 0 auto; padding: 14px; }
+.tarjeta {
+  background: var(--tarjeta); border: 1px solid var(--borde);
+  border-radius: 14px; padding: 14px; margin-bottom: 14px;
+}
+.tarjeta h2 { margin: 0 0 10px; font-size: 1rem; }
+label { display: block; font-size: .85rem; color: var(--suave); margin: 10px 0 4px; }
+input[type=text], input[type=date], select {
+  width: 100%; padding: 12px; font: inherit; color: inherit;
+  background: var(--fondo); border: 1px solid var(--borde); border-radius: 10px;
+}
+input:focus, select:focus { outline: 2px solid var(--acento); border-color: transparent; }
+.fila { display: flex; gap: 8px; }
+.fila > input { flex: 1; min-width: 0; }
+button, .boton {
+  font: inherit; font-weight: 600; cursor: pointer;
+  padding: 12px 16px; border-radius: 10px; border: 0;
+  background: var(--acento); color: #fff; text-align: center; text-decoration: none; display: inline-block;
+}
+button:active { background: var(--acento-oscuro); }
+button.sec { background: transparent; color: var(--acento); border: 1px solid var(--acento); }
+button.peligro { background: transparent; color: var(--peligro); border: 1px solid var(--peligro); }
+button.ancho { width: 100%; margin-top: 10px; }
+button[disabled] { opacity: .5; }
+.lista { list-style: none; margin: 0; padding: 0; }
+.item {
+  display: flex; align-items: center; gap: 10px; justify-content: space-between;
+  padding: 12px; border: 1px solid var(--borde); border-radius: 12px; margin-bottom: 8px;
+  background: var(--tarjeta); cursor: pointer;
+}
+.item .nombre { font-weight: 600; word-break: break-word; }
+.item .detalle { font-size: .8rem; color: var(--suave); }
+.etiqueta { font-size: .75rem; padding: 3px 8px; border-radius: 99px; white-space: nowrap; border: 1px solid currentColor; }
+.etiqueta.ok { color: var(--ok); }
+.etiqueta.falta { color: var(--aviso); }
+.vacio { color: var(--suave); text-align: center; padding: 14px 0; }
+.foto-prev {
+  display: block; max-width: 100%; max-height: 320px; margin: 10px auto 0;
+  border-radius: 10px; border: 1px solid var(--borde);
+}
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.acciones > * { flex: 1 1 140px; }
+.pie { color: var(--suave); font-size: .8rem; text-align: center; margin: 20px 0; }
+.error { color: var(--peligro); font-size: .85rem; margin-top: 6px; }
+.aviso {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(18px + env(safe-area-inset-bottom, 0));
+  background: #1c1917; color: #fff; padding: 10px 16px; border-radius: 10px; z-index: 10;
+  max-width: 90%; text-align: center; font-size: .9rem;
+}
+input[type=file] { display: none; }
+
+/* Técnico y firma */
+.tarjeta.pendiente { border-color: var(--acento); border-width: 2px; }
+.nota { color: var(--suave); font-size: .8rem; margin: 8px 0 0; }
+.tarjeta.pendiente .nota { font-size: .9rem; margin: 0 0 4px; }
+.pad {
+  display: block; width: 100%; height: 190px; margin-top: 4px;
+  background: #fff linear-gradient(transparent 75%, #d6d3d1 75%, #d6d3d1 calc(75% + 1px), transparent calc(75% + 1px));
+  border: 1px dashed var(--suave); border-radius: 10px;
+  touch-action: none; cursor: crosshair;
+}
+.firma-prev {
+  display: block; max-width: 100%; max-height: 140px; margin: 8px auto 0; padding: 6px;
+  background: #fff; border: 1px solid var(--borde); border-radius: 10px;
+}
