@@ -106,3 +106,19 @@ input[type=file] { display: none; }
   display: block; max-width: 100%; max-height: 140px; margin: 8px auto 0; padding: 6px;
   background: #fff; border: 1px solid var(--borde); border-radius: 10px;
 }
+
+/* ===== Identidad JDev (solo apariencia) ===== */
+.jd-tile{width:38px;height:38px;border-radius:10px;background:#EE6A1C;color:#fff;display:grid;place-items:center;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+.jd-tile svg{width:22px;height:22px;display:block}
+.jd-strip{background:var(--jd-strip-bg,#fff);border-bottom:3px solid #EE6A1C;height:60px;display:flex;justify-content:flex-end;overflow:hidden}
+.jd-banner{display:block;height:100%;width:auto;max-width:none;flex:none;color:var(--jd-trazo,#A9AEB5);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 22%);mask-image:linear-gradient(90deg,transparent 0,#000 22%)}
+.jdev{font-family:"Barlow", "Segoe UI", system-ui, sans-serif!important;font-weight:600}
+@media (max-width:360px){.jd-strip{height:50px}}
+
+:root{--acento:#EE6A1C;--acento-oscuro:#C9530F;--fondo:#F2F3F5;--tarjeta:#fff;--texto:#262A2F;--suave:#5E656E;--borde:#DDE0E4;--jd-strip-bg:#fff;--jd-trazo:#A9AEB5}
+@media (prefers-color-scheme: dark){:root{--fondo:#16181B;--tarjeta:#1F2226;--texto:#ECEEF0;--suave:#A3A9B1;--borde:#3A3F46;--jd-strip-bg:#1F2226;--jd-trazo:#5D646D}}
+.top{background:var(--tarjeta);color:var(--texto);border-bottom:1px solid var(--borde);gap:11px}
+.top h1{font-family:"Barlow", "Segoe UI", system-ui, sans-serif;font-size:1.3rem;font-weight:700}
+.migas{color:var(--suave);opacity:1}
+.atras{background:var(--fondo);color:var(--texto)}
+h2,h3,button,.boton{font-family:"Barlow", "Segoe UI", system-ui, sans-serif}
