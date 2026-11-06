@@ -23,6 +23,15 @@ En la línea o el proyecto se puede descargar un ZIP con todos los informes comp
 Se guardan en el navegador del dispositivo (si se borran los datos del sitio, se pierden). Usa "Exportar copia" (pantalla de inicio) para guardar un .json de los proyectos y "Importar copia" para recuperarlo.
 El nombre y la firma del técnico **no** van en esa copia: se configuran en cada navegador.
 
+## Dirección automática desde la base de datos de centros
+Al escribir el número del CD/PT, la dirección se rellena sola con la de `datos/centros.json` (número > dirección, sin distinguir mayúsculas ni espacios).
+Sigue siendo editable: lo que corrijas a mano no se vuelve a sobrescribir, y debajo aparece la dirección de la base de datos con el botón "Usar esta" por si quieres recuperarla.
+Si el número no está o no tiene dirección en la base de datos, el campo queda vacío.
+
+Para actualizar la base de datos con un Excel nuevo (con las columnas `DENOM` e `INDIRIZZO`):
+`python herramientas/convertir_centros.py "archivo.xlsx"` (necesita Python y `pip install openpyxl`) y sube el `datos/centros.json` resultante.
+Ojo: si el repositorio es público, esa base de datos la puede leer cualquiera que tenga el enlace.
+
 ## Cambiar el modelo de Word
 Edita `plantilla.docx` en Word manteniendo estos marcadores tal cual:
 `{{FECHA}}`, `{{CODIGO}}`, `{{DIRECCION}}`, `{{MUNICIPIO}}`, `{{TRATAMIENTO}}`, `{{TECNICO}}`,

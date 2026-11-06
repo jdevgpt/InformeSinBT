@@ -11,6 +11,9 @@
   // firma: {data: PNG en base64 (data URL), w, h} o null
   let tecnico = { tratamiento: 'D.', nombre: '', firma: null };
   let prevNav = null;
+  // Base de datos de centros (número -> dirección), de datos/centros.json
+  let centros = null;
+  let cargandoCentros = null;
 
   const DB_NOMBRE = 'informes-bt';
   function abrirDB() {
@@ -95,6 +98,27 @@
     });
   }
   const completo = function (c) { return c.fecha && c.direccion.trim() && c.municipio.trim() && c.foto; };
+
+  // ---------- Base de datos de centros ----------
+  function cargarCentros() {
+    if (!cargandoCentros) {
+      cargandoCentros = fetch('datos/centros.json')
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (j) { centros = j; return j; })
+        .catch(function () { cargandoCentros = null; centros = null; return null; });
+    }
+    return cargandoCentros;
+  }
+  // Dirección del centro según su número (sin distinguir mayúsculas ni espacios). '' si no hay.
+  function buscarDireccion(nombre) {
+    if (!centros) return '';
+    const k = String(nombre).toUpperCase().replace(/\s+/g, '');
+    if (!k) return '';
+    const tiene = function (x) { return Object.prototype.hasOwnProperty.call(centros, x); };
+    if (tiene(k)) return centros[k];
+    const sinCeros = k.replace(/^0+(?=\d)/, '');
+    return tiene(sinCeros) ? centros[sinCeros] : '';
+  }
 
   // ---------- Fotos ----------
   function cargarImagen(src) {
@@ -363,6 +387,7 @@
       '<div id="err" class="error"></div>' +
       '<label for="f-fecha">Fecha de revisión</label><input type="date" id="f-fecha" value="' + esc(c.fecha) + '">' +
       '<label for="f-dir">Dirección del sitio</label><input type="text" id="f-dir" value="' + esc(c.direccion) + '" autocomplete="street-address">' +
+      '<div id="dir-nota" class="nota"></div>' +
       '<label for="f-mun">Término municipal</label><input type="text" id="f-mun" value="' + esc(c.municipio) + '">' +
       '<label>Foto</label>' +
       '<div class="acciones"><label class="boton sec" style="margin:0">Hacer foto<input type="file" id="f-cam" accept="image/*" capture="environment"></label>' +
@@ -371,6 +396,33 @@
       '<button class="ancho" data-act="generar">Generar Word</button>' +
       '<div class="acciones"><button class="peligro" data-act="borrar-cd">Eliminar CD/PT</button></div>';
     pintarFoto();
+    pintarNotaDireccion(c);
+    cargarCentros().then(function () {
+      if (nav.vista !== 'cd' || nav.c !== c.id) return;
+      if (!c.direccion.trim()) {
+        const d = buscarDireccion(c.nombre);
+        if (d) {
+          c.direccion = d; c.dirAuto = true; guardar();
+          const el = document.getElementById('f-dir'); if (el) el.value = d;
+        }
+      }
+      pintarNotaDireccion(c);
+    });
+  }
+  // Aviso bajo la dirección: de dónde viene, o qué dirección tiene la base de datos si es distinta.
+  function pintarNotaDireccion(c) {
+    const el = document.getElementById('dir-nota');
+    if (!el) return;
+    if (!centros) { el.textContent = ''; return; }
+    const d = buscarDireccion(c.nombre);
+    if (d && c.direccion === d) {
+      el.textContent = c.dirAuto ? 'Rellenada desde la base de datos de centros. Puedes corregirla.' : '';
+    } else if (d) {
+      el.innerHTML = 'En la base de datos: ' + esc(d) +
+        ' <button class="sec" data-act="restaurar-dir" style="padding:6px 10px;font-size:.8rem;margin-left:4px">Usar esta</button>';
+    } else if (c.nombre.trim()) {
+      el.textContent = 'Este número no está en la base de datos (o no tiene dirección).';
+    } else el.textContent = '';
   }
   function pintarFoto() {
     const c = cd(), el = document.getElementById('prev');
@@ -481,11 +533,20 @@
       const n = valorNuevo(), err = document.getElementById('err');
       if (!n) { err.textContent = 'Escribe un nombre'; return; }
       if (nombreUsado(p, n)) { err.textContent = 'Ya existe un CD/PT con ese nombre en este proyecto'; return; }
-      const nc = { id: uid(), nombre: n, fecha: hoy(), direccion: '', municipio: '', foto: null };
+      await cargarCentros();
+      const dir = buscarDireccion(n);
+      const nc = { id: uid(), nombre: n, fecha: hoy(), direccion: dir, dirAuto: !!dir, municipio: '', foto: null };
       l.cds.push(nc); guardar(); ir('cd', { c: nc.id });
     } else if (act === 'abrir-cd') ir('cd', { c: id });
     else if (act === 'generar') generarUno(c);
     else if (act === 'quitar-foto') { c.foto = null; guardar(); pintarFoto(); }
+    else if (act === 'restaurar-dir') {
+      const d = buscarDireccion(c.nombre);
+      if (d) {
+        c.direccion = d; c.dirAuto = true; guardar();
+        document.getElementById('f-dir').value = d; pintarNotaDireccion(c);
+      }
+    }
     else if (act === 'zip-linea') generarZip([l], p.nombre + ' - ' + l.nombre, false);
     else if (act === 'zip-proyecto') generarZip(p.lineas, p.nombre, true);
     else if (act === 'exportar') exportarCopia();
@@ -527,13 +588,18 @@
     const c = nav.vista === 'cd' ? cd() : null; if (!c) return;
     const id = ev.target.id;
     if (id === 'f-fecha') c.fecha = ev.target.value;
-    else if (id === 'f-dir') c.direccion = ev.target.value;
+    else if (id === 'f-dir') { c.direccion = ev.target.value; c.dirAuto = false; pintarNotaDireccion(c); }
     else if (id === 'f-mun') c.municipio = ev.target.value;
     else if (id === 'f-nombre') {
       const n = ev.target.value.trim(), err = document.getElementById('err');
       if (!n) { err.textContent = 'El nombre no puede estar vacío'; return; }
       if (nombreUsado(proyecto(), n, c.id)) { err.textContent = 'Ya existe un CD/PT con ese nombre'; return; }
       err.textContent = ''; c.nombre = n; document.getElementById('titulo').textContent = n;
+      if (!c.direccion.trim() || c.dirAuto) {
+        const d = buscarDireccion(n);
+        if (d || c.dirAuto) { c.direccion = d; c.dirAuto = !!d; document.getElementById('f-dir').value = d; }
+      }
+      pintarNotaDireccion(c);
     } else return;
     guardar();
   });
@@ -564,6 +630,7 @@
   (async function () {
     await cargar();
     pintar();
+    cargarCentros();
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
   })();
 })();
