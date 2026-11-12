@@ -11,6 +11,10 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Inf. sin BT">
 </head>
 <body>
   <header class="top">
@@ -28,5 +32,9 @@
   <script src="lib/jszip.min.js"></script>
   <script src="docgen.js"></script>
   <script src="app.js"></script>
+<script>/* App instalable y sin conexión */
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+try{if(navigator.storage&&navigator.storage.persist&&(matchMedia('(display-mode: standalone)').matches||navigator.standalone))navigator.storage.persist();}catch(e){}
+</script>
 </body>
 </html>
