@@ -354,6 +354,9 @@
       '<section class="tarjeta"><h2>Nueva línea</h2><div class="fila">' +
       '<input type="text" id="nuevo" placeholder="Nombre de la línea" autocomplete="off">' +
       '<button data-act="crear-linea">Añadir</button></div></section>' +
+      '<section class="tarjeta"><h2>Añadir CD / PT por número</h2><div class="fila">' +
+      '<input type="text" id="rap-cd" placeholder="Nº (la línea se pone sola)" autocomplete="off" inputmode="numeric">' +
+      '<button data-act="crear-cd-rapido">Añadir</button></div><div id="rap-nota" class="nota"></div></section>' +
       (lista ? '<ul class="lista">' + lista + '</ul>' : '<p class="vacio">Aún no hay líneas.</p>') +
       '<div class="acciones"><button data-act="zip-proyecto">Descargar todo (ZIP)</button>' +
       '<button class="peligro" data-act="borrar-proyecto">Eliminar proyecto</button></div>';
@@ -529,6 +532,20 @@
       const nl = { id: uid(), nombre: n, cds: [] };
       p.lineas.push(nl); guardar(); ir('linea', { l: nl.id });
     } else if (act === 'abrir-linea') ir('linea', { l: id });
+    else if (act === 'crear-cd-rapido') {
+      const n = (document.getElementById('rap-cd').value || '').trim();
+      if (!n) return document.getElementById('rap-cd').focus();
+      let nom = LineasCD.buscar(n);
+      if (nom === undefined) { await LineasCD.cargar(); nom = LineasCD.buscar(n); }
+      if (!nom) { notaRapida(); return aviso('Ese CD/PT no está en la base: crea la línea a mano'); }
+      if (nombreUsado(p, n)) return aviso('Ya existe un CD/PT con ese nombre en este proyecto');
+      let ln = p.lineas.find(function (x) { return norm(x.nombre) === norm(nom); });
+      if (!ln) { ln = { id: uid(), nombre: nom, cds: [] }; p.lineas.push(ln); }
+      await cargarCentros();
+      const dir = buscarDireccion(n);
+      const nc = { id: uid(), nombre: n, fecha: hoy(), direccion: dir, dirAuto: !!dir, municipio: '', foto: null };
+      ln.cds.push(nc); guardar(); ir('cd', { l: ln.id, c: nc.id });
+    }
     else if (act === 'crear-cd') {
       const n = valorNuevo(), err = document.getElementById('err');
       if (!n) { err.textContent = 'Escribe un nombre'; return; }
@@ -575,12 +592,25 @@
     }
   });
 
+  // Pista de la línea al escribir el número en "Añadir CD / PT por número"
+  function notaRapida() {
+    const i = document.getElementById('rap-cd'), nt = document.getElementById('rap-nota');
+    if (!i || !nt) return;
+    const n = i.value.trim();
+    if (!n) { nt.textContent = ''; return; }
+    const l = LineasCD.buscar(n);
+    if (l === undefined) { nt.textContent = 'Cargando base de centros…'; LineasCD.cargar().then(function (j) { if (j) notaRapida(); }); }
+    else if (l) nt.textContent = '✓ Línea ' + l;
+    else nt.textContent = 'No está en la base: crea la línea a mano y añádelo dentro.';
+  }
   $app.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter' && ev.target.id === 'rap-cd') { const b = $app.querySelector('[data-act="crear-cd-rapido"]'); if (b) b.click(); return; }
     if (ev.key !== 'Enter' || ev.target.id !== 'nuevo') return;
     const b = $app.querySelector('.fila button'); if (b) b.click();
   });
 
   $app.addEventListener('input', function (ev) {
+    if (ev.target.id === 'rap-cd') return notaRapida();
     if (nav.vista === 'tecnico') {
       if (ev.target.id === 't-nombre') { tecnico.nombre = ev.target.value; guardarTecnico(); }
       return;

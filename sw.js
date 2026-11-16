@@ -1,6 +1,6 @@
 /* Informes sin BT · funcionamiento sin conexión (JDev) */
-const VERSION = 'informesinbt-v1';
-const LOCALES = ["./", "./index.html", "./app.js", "./apple-touch-icon.png", "./datos/centros.json", "./docgen.js", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./icon.svg", "./lib/jszip.min.js", "./manifest.webmanifest", "./plantilla.docx", "./style.css"];
+const VERSION = 'informesinbt-v2';
+const LOCALES = ["./", "./index.html", "./app.js", "./apple-touch-icon.png", "./datos/centros.json", "./docgen.js", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./icon.svg", "./lib/jszip.min.js", "./manifest.webmanifest", "./plantilla.docx", "./style.css", "./lineas.js", "./lineas.json"];
 const EXTERNOS = ["https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&display=swap"];
 
 self.addEventListener('install', e => {
