@@ -1,12 +1,12 @@
 /* Informes sin BT · funcionamiento sin conexión (JDev) */
 const VERSION = 'informesinbt-v2';
-const LOCALES = ["./", "./index.html", "./app.js", "./apple-touch-icon.png", "./datos/centros.json", "./docgen.js", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./icon.svg", "./lib/jszip.min.js", "./manifest.webmanifest", "./plantilla.docx", "./style.css", "./lineas.js", "./lineas.json"];
+const LOCALES = ["./", "./index.html", "./app.js", "./apple-touch-icon.png", "./datos/centros.json", "./docgen.js", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./icon.svg", "./lib/jszip.min.js", "./lineas.js", "./lineas.json", "./manifest.webmanifest", "./plantilla.docx", "./style.css"];
 const EXTERNOS = ["https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&display=swap"];
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const c = await caches.open(VERSION);
-    await c.addAll(LOCALES);
+    await c.addAll(LOCALES.map(u => new Request(u, { cache: 'reload' })));
     await Promise.all(EXTERNOS.map(u => fetch(u, { mode: 'cors' }).then(r => r.ok && c.put(u, r)).catch(() => {})));
     self.skipWaiting();
   })());
@@ -30,7 +30,8 @@ self.addEventListener('fetch', e => {
       const c = await caches.open(VERSION);
       try {
         const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 5000);
-        const r = await fetch(req, { signal: ctl.signal }); clearTimeout(t);
+        // 'no-cache': pregunta siempre a GitHub si hay versión nueva
+        const r = await fetch(req.url, { signal: ctl.signal, cache: 'no-cache', credentials: 'same-origin' }); clearTimeout(t);
         if (r.ok) c.put('./index.html', r.clone());
         return r;
       } catch (err) {
@@ -40,14 +41,17 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Archivos de la app: se sirven al momento desde lo guardado y se actualizan por detrás
+  // Archivos de la app: primero la red (versión al día); si no hay o tarda, lo guardado
   if (url.origin === self.location.origin) {
     e.respondWith((async () => {
       const c = await caches.open(VERSION);
       const g = await c.match(req, { ignoreSearch: true });
-      const red = fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => null);
-      if (g) { e.waitUntil(red); return g; }
-      return (await red) || new Response('', { status: 504, statusText: 'Sin conexión' });
+      const red = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(r => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => null);
+      if (!g) return (await red) || new Response('', { status: 504, statusText: 'Sin conexión' });
+      const espera = new Promise(ok => setTimeout(() => ok(null), 3000));
+      const r = await Promise.race([red, espera]);
+      if (r && r.ok) return r;
+      e.waitUntil(red); return g;
     })());
     return;
   }
